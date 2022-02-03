@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List
 from typing import Optional
 
 
@@ -10,9 +10,9 @@ class KeyValuePair:
 
 class TwoThreeNode:
     def __init__(self):
-        self.parent = None
-        self.items = [None, None, None]
-        self.children = [None, None, None, None]
+        self.parent: Optional[TwoThreeNode] = None
+        self.items: List[Optional[KeyValuePair]] = [None, None, None]
+        self.children: List[Optional[TwoThreeNode]] = [None, None, None, None]
         self.numOfItems = 0
         self.numOfChildren = 0
 
@@ -281,7 +281,6 @@ class TwoThreeTree:
             cur = cur.children[0]
         return cur
 
-
     def retrieveItem(self, searchKey) -> Tuple[Optional[KeyValuePair], bool]:
         return self.retrieveItemRecursive(searchKey, self.root)
 
@@ -356,4 +355,3 @@ if __name__ == "__main__":
     print(twothreetree.save())
     twothreetree.deleteItem(36)
     print(twothreetree.save())
-
