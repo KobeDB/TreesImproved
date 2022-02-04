@@ -219,7 +219,7 @@ class TwoThreeFourTree:
         if root is None:
             return False
         if root is not self.root:
-            root = self.grow(root)
+            self.grow(root)
         itemIndex = root.itemIndex(searchKey)
         if itemIndex != -1:
             if root.isLeafNode():
@@ -230,8 +230,6 @@ class TwoThreeFourTree:
             # swap met inorder successor
             inorderSuccessor = self.getInorderSuccessorAndGrow(root, itemIndex)
             toDelete, toDeleteItemIndex, success = self.search(root, searchKey)
-            if not success:
-                raise ValueError("Search for potentially sunken 'toDelete' failed!")
             if toDelete.isLeafNode():
                 toDelete.removeItem(toDeleteItemIndex)
                 return True
@@ -243,14 +241,15 @@ class TwoThreeFourTree:
     def getInorderSuccessorAndGrow(self, root: TwoThreeFourNode, itemIndex) -> TwoThreeFourNode:
         cur = root.children[itemIndex + 1]
         while not cur.isLeafNode():
-            cur = self.grow(cur)
-            cur = cur.children[0]
-        cur = self.grow(cur)  # Na deze grow is cur nog steeds dezelfde leaf node (normaal gezien)
+            nextcur = cur.children[0]   # Bug in versie op Inginious?: Fetch the correct inorder successor child tree BEFORE grow
+            self.grow(cur)
+            cur = nextcur
+        self.grow(cur)  # Na deze grow is cur nog steeds dezelfde leaf node
         return cur
 
-    def grow(self, toGrow: TwoThreeFourNode) -> TwoThreeFourNode:
+    def grow(self, toGrow: TwoThreeFourNode):
         if toGrow.numOfItems > 1:
-            return toGrow
+            return
 
         toGrowChildIndex = toGrow.parent.getChildIndex(toGrow)
 
@@ -260,14 +259,14 @@ class TwoThreeFourTree:
             toGrow.addItem(toGrow.parent.removeItem(toGrowChildIndex - 1))
             toGrow.insertChild(donorNode.removeChild(-1), 0)
             toGrow.parent.addItem(donorNode.removeItem(-1))
-            return toGrow
+            return
         # Does toGrow have a right sibling with spare items?
         if toGrow.parent.childHasSpareItems(toGrowChildIndex + 1):
             donorNode = toGrow.parent.children[toGrowChildIndex + 1]
             toGrow.addItem(toGrow.parent.removeItem(toGrowChildIndex))
             toGrow.appendChild(donorNode.removeChild(0))
             toGrow.parent.addItem(donorNode.removeItem(0))
-            return toGrow
+            return
 
         # Merge with right sibling if there is no left sibling
         if toGrowChildIndex == 0:
@@ -279,7 +278,7 @@ class TwoThreeFourTree:
             toGrow.appendChild(mergeSibling.removeChild(0))
             if toGrow.parent is self.root and toGrow.parent.isEmpty():
                 self.root = toGrow
-            return toGrow
+            return
 
         # Merge with left sibling
         toGrow.addItem(toGrow.parent.removeItem(toGrowChildIndex - 1))
@@ -290,7 +289,7 @@ class TwoThreeFourTree:
         toGrow.insertChild(mergeSibling.removeChild(0), 0)
         if toGrow.parent is self.root and toGrow.parent.isEmpty():
             self.root = toGrow
-        return toGrow
+        return
 
     def retrieveItem(self, searchKey) -> Tuple[Optional[KeyValuePair], bool]:
         node, index, success = self.search(self.root, searchKey)
