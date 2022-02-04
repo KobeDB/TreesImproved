@@ -32,6 +32,10 @@ class TwoThreeFourNode:
         child.parent = self
 
     def removeChild(self, childIndex):
+        """
+        :param childIndex: if -1 removes last child
+        :return:
+        """
         if self.numOfChildren == 0:
             return None
         if childIndex >= self.numOfChildren:
@@ -208,6 +212,97 @@ class TwoThreeFourTree:
         toSplit.parent.insertChild(newRightChild, index_of_promoted_item_in_parent + 1)
         return toSplit.parent
 
+    def deleteItem(self, searchKey) -> bool:
+        return self.delete(self.root, searchKey)
+
+    def delete(self, root: Optional[TwoThreeFourNode], searchKey) -> bool:
+        if root is None:
+            return False
+        if root is not self.root:
+            root = self.grow(root)
+        itemIndex = root.itemIndex(searchKey)
+        if itemIndex != -1:
+            if root.isLeafNode():
+                root.removeItem(itemIndex)
+                if root is self.root and self.root.isEmpty():
+                    self.root = None
+                return True
+            # swap met inorder successor
+            needsRootRefresh = root is self.root
+            inorderSuccessor = self.getInorderSuccessorAndGrow(root, itemIndex)
+            if needsRootRefresh:
+                root = self.root
+            toDelete, toDeleteItemIndex, success = self.search(root, searchKey)
+            if not success:
+                raise ValueError("Search for potentially sunken 'toDelete' failed!")
+            if toDelete.isLeafNode():
+                toDelete.removeItem(toDeleteItemIndex)
+                return True
+            toDelete.items[toDeleteItemIndex] = inorderSuccessor.removeItem(0)
+            return True
+
+        return self.delete(root.children[root.findSubTree(searchKey)], searchKey)
+
+    def search(self, root: TwoThreeFourNode, searchKey) -> Tuple[Optional[TwoThreeFourNode], int, bool]:
+        if root is None:
+            return None, -1, False
+        itemIndex = root.itemIndex(searchKey)
+        if itemIndex != -1:
+            return root, itemIndex, True
+        return self.search(root.children[root.findSubTree(searchKey)], searchKey)
+
+    def getInorderSuccessorAndGrow(self, root: TwoThreeFourNode, itemIndex) -> TwoThreeFourNode:
+        cur = root.children[itemIndex + 1]
+        while not cur.isLeafNode():
+            cur = self.grow(cur)
+            cur = cur.children[0]
+        cur = self.grow(cur)  # Na deze grow is cur nog steeds dezelfde leaf node (normaal gezien)
+        return cur
+
+    def grow(self, toGrow: TwoThreeFourNode) -> TwoThreeFourNode:
+        if toGrow.numOfItems > 1:
+            return toGrow
+
+        toGrowChildIndex = toGrow.parent.getChildIndex(toGrow)
+
+        # Does toGrow have a left sibling with spare items?
+        if toGrow.parent.childHasSpareItems(toGrowChildIndex - 1):
+            donorNode = toGrow.parent.children[toGrowChildIndex - 1]
+            toGrow.addItem(toGrow.parent.removeItem(toGrowChildIndex - 1))
+            toGrow.insertChild(donorNode.removeChild(-1), 0)
+            toGrow.parent.addItem(donorNode.removeItem(-1))
+            return toGrow
+        # Does toGrow have a right sibling with spare items?
+        if toGrow.parent.childHasSpareItems(toGrowChildIndex + 1):
+            donorNode = toGrow.parent.children[toGrowChildIndex + 1]
+            toGrow.addItem(toGrow.parent.removeItem(toGrowChildIndex))
+            toGrow.appendChild(donorNode.removeChild(0))
+            toGrow.parent.addItem(donorNode.removeItem(0))
+            return toGrow
+
+        # Merge with right sibling if there is no left sibling
+        if toGrowChildIndex == 0:
+            toGrow.addItem(toGrow.parent.removeItem(0))
+            mergeSibling = toGrow.parent.children[1]
+            toGrow.addItem(mergeSibling.removeItem(0))
+            toGrow.parent.removeChild(1)
+            toGrow.appendChild(mergeSibling.removeChild(0))
+            toGrow.appendChild(mergeSibling.removeChild(0))
+            if toGrow.parent is self.root and toGrow.parent.isEmpty():
+                self.root = toGrow
+            return toGrow
+
+        # Merge with left sibling
+        toGrow.addItem(toGrow.parent.removeItem(toGrowChildIndex - 1))
+        mergeSibling = toGrow.parent.children[toGrowChildIndex - 1]
+        toGrow.addItem(mergeSibling.removeItem(0))
+        toGrow.parent.removeChild(toGrowChildIndex - 1)
+        toGrow.insertChild(mergeSibling.removeChild(1), 0)
+        toGrow.insertChild(mergeSibling.removeChild(0), 0)
+        if toGrow.parent is self.root and toGrow.parent.isEmpty():
+            self.root = toGrow
+        return toGrow
+
     def save(self):
         if self.root is None:
             return dict()
@@ -239,4 +334,26 @@ if __name__ == "__main__":
     tree.insertItem(KeyValuePair(15, " val 38"))
     tree.insertItem(KeyValuePair(90, " val 38"))
     tree.insertItem(KeyValuePair(100, " val 38"))
+    print(tree.save())
+    tree.deleteItem(100)
+    print(tree.save())
+    tree.deleteItem(70)
+    print(tree.save())
+    tree.deleteItem(80)
+    print(tree.save())
+    tree.deleteItem(60)
+    print(tree.save())
+    tree.deleteItem(90)
+    print(tree.save())
+    tree.deleteItem(30)
+    print(tree.save())
+    tree.deleteItem(50)
+    print(tree.save())
+    tree.deleteItem(10)
+    print(tree.save())
+    tree.deleteItem(15)
+    print(tree.save())
+    tree.deleteItem(20)
+    print(tree.save())
+    tree.deleteItem(40)
     print(tree.save())
