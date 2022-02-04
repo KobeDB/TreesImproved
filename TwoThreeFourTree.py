@@ -228,10 +228,7 @@ class TwoThreeFourTree:
                     self.root = None
                 return True
             # swap met inorder successor
-            needsRootRefresh = root is self.root
             inorderSuccessor = self.getInorderSuccessorAndGrow(root, itemIndex)
-            if needsRootRefresh:
-                root = self.root
             toDelete, toDeleteItemIndex, success = self.search(root, searchKey)
             if not success:
                 raise ValueError("Search for potentially sunken 'toDelete' failed!")
@@ -242,14 +239,6 @@ class TwoThreeFourTree:
             return True
 
         return self.delete(root.children[root.findSubTree(searchKey)], searchKey)
-
-    def search(self, root: TwoThreeFourNode, searchKey) -> Tuple[Optional[TwoThreeFourNode], int, bool]:
-        if root is None:
-            return None, -1, False
-        itemIndex = root.itemIndex(searchKey)
-        if itemIndex != -1:
-            return root, itemIndex, True
-        return self.search(root.children[root.findSubTree(searchKey)], searchKey)
 
     def getInorderSuccessorAndGrow(self, root: TwoThreeFourNode, itemIndex) -> TwoThreeFourNode:
         cur = root.children[itemIndex + 1]
@@ -302,6 +291,18 @@ class TwoThreeFourTree:
         if toGrow.parent is self.root and toGrow.parent.isEmpty():
             self.root = toGrow
         return toGrow
+
+    def retrieveItem(self, searchKey) -> Tuple[Optional[KeyValuePair], bool]:
+        node, index, success = self.search(self.root, searchKey)
+        return node.items[index], success
+
+    def search(self, root: TwoThreeFourNode, searchKey) -> Tuple[Optional[TwoThreeFourNode], int, bool]:
+        if root is None:
+            return None, -1, False
+        itemIndex = root.itemIndex(searchKey)
+        if itemIndex != -1:
+            return root, itemIndex, True
+        return self.search(root.children[root.findSubTree(searchKey)], searchKey)
 
     def save(self):
         if self.root is None:
