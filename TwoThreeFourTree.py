@@ -241,7 +241,8 @@ class TwoThreeFourTree:
     def getInorderSuccessorAndGrow(self, root: TwoThreeFourNode, itemIndex) -> TwoThreeFourNode:
         cur = root.children[itemIndex + 1]
         while not cur.isLeafNode():
-            nextcur = cur.children[0]   # Bug in versie op Inginious?: Fetch the correct inorder successor child tree BEFORE grow
+            nextcur = cur.children[
+                0]  # Bug in versie op Inginious?: Fetch the correct inorder successor child tree BEFORE grow
             self.grow(cur)
             cur = nextcur
         self.grow(cur)  # Na deze grow is cur nog steeds dezelfde leaf node
@@ -303,6 +304,17 @@ class TwoThreeFourTree:
             return root, itemIndex, True
         return self.search(root.children[root.findSubTree(searchKey)], searchKey)
 
+    def inorderTraverse(self, visit):
+        self.inorderTraverseRecursive(self.root, visit)
+
+    def inorderTraverseRecursive(self, root, visit):
+        if root is None:
+            return
+        for i in range(0, root.numOfItems):
+            self.inorderTraverseRecursive(root.children[i], visit)
+            visit(root.items[i].key)
+        self.inorderTraverseRecursive(root.children[root.numOfItems], visit)
+
     def save(self):
         if self.root is None:
             return dict()
@@ -321,7 +333,7 @@ class TwoThreeFourTree:
         return treeDict
 
 
-if __name__ == "__main__":
+def simpleTreeTest():
     tree = TwoThreeFourTree()
     tree.insertItem(KeyValuePair(60, "Value of 4"))
     tree.insertItem(KeyValuePair(30, "value of 1"))
@@ -357,3 +369,33 @@ if __name__ == "__main__":
     print(tree.save())
     tree.deleteItem(40)
     print(tree.save())
+
+
+def treeTest(items) -> TwoThreeFourTree:
+    tree = TwoThreeFourTree()
+    for item in items:
+        tree.insertItem(KeyValuePair(item, "val"))
+
+    return tree
+
+if __name__ == "__main__":
+
+    import random
+    import timeit
+
+    items = set()
+    for i in range(0, 1000):
+        items.add(int(random.random() * 1000))
+    print(items)
+
+    tree = treeTest(items)
+    starttime = timeit.default_timer()
+    for item in items:
+        tree.deleteItem(item)
+    print(timeit.default_timer() - starttime)
+
+
+    #print(tree.save())
+    #tree.inorderTraverse(print)
+
+    # simpleTreeTest()

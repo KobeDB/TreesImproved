@@ -164,7 +164,7 @@ class BinarySearchTree:
         return treeDict
 
 
-if __name__ == '__main__':
+def simpleTreeTest():
     bst = BinarySearchTree()
     bst.searchTreeInsert(KeyValuePair(6, "Value van 6"))
     bst.searchTreeInsert(KeyValuePair(7, "Value van 7"))
@@ -178,3 +178,25 @@ if __name__ == '__main__':
     print(bst.searchTreeRetrieve(3)[0].val)
     bst.inorderTraverse(print)
     print(bst.save())
+
+
+def treeTest(items):
+    tree = BinarySearchTree()
+    for item in items:
+        tree.searchTreeInsert(KeyValuePair(item, "val"))
+    return tree
+
+
+if __name__ == "__main__":
+
+    import random
+    import timeit
+
+    items = set()
+    for i in range(0, 1000):
+        items.add(int(random.random() * 1000))
+    print(items)
+
+    starttime = timeit.default_timer()
+    tree = treeTest(items)
+    print(timeit.default_timer() - starttime)

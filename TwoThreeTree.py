@@ -1,5 +1,6 @@
-from typing import Tuple, List
+from typing import Tuple, List, Set
 from typing import Optional
+from copy import deepcopy
 
 
 class KeyValuePair:
@@ -321,8 +322,7 @@ class TwoThreeTree:
             treeDict['children'].append(self.saveRecursive(root.children[i]))
         return treeDict
 
-
-if __name__ == "__main__":
+def simpleTreeTest():
     twothreetree = TwoThreeTree()
     twothreetree.insertItem(KeyValuePair(4, "Value of 4"))
     twothreetree.insertItem(KeyValuePair(1, "value of 1"))
@@ -355,3 +355,26 @@ if __name__ == "__main__":
     print(twothreetree.save())
     twothreetree.deleteItem(36)
     print(twothreetree.save())
+
+def treeTest(items: Set) -> TwoThreeTree:
+    tree = TwoThreeTree()
+    for item in items:
+        tree.insertItem(KeyValuePair(item, "val"))
+
+    return tree
+
+if __name__ == "__main__":
+
+    import random
+    import timeit
+
+    items = set()
+    for i in range(0, 1000):
+        items.add(int(random.random() * 1000))
+    print(items)
+
+    tree = treeTest(items)
+    starttime = timeit.default_timer()
+    for item in items:
+        tree.deleteItem(item)
+    print(timeit.default_timer() - starttime)
